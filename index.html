@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1F7A6D">
+<title>会社ワーク</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏢</text></svg>">
+<style>
+:root{--acc:#1F7A6D;--acc-d:#155E53;--bg:#F7F4EE;--card:#FFFFFF;--ink:#2B2B28;--sub:#7A756B;--line:#E5DFD3;--danger:#C0453E}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Noto Sans JP",sans-serif;background:var(--bg);color:var(--ink);font-size:16px}
+button{font:inherit;cursor:pointer;border:none;border-radius:10px;min-height:44px}
+input,textarea,select{font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;width:100%}
+textarea{resize:vertical}
+.primary{background:var(--acc);color:#fff;padding:10px 18px;font-weight:700}
+.primary:active{background:var(--acc-d)}
+.mini{min-height:32px;padding:4px 10px;font-size:13px;background:#EFEAE0;color:var(--ink);border-radius:8px}
+.mini.del{color:var(--danger)}
+.err{color:var(--danger);min-height:1.2em;font-size:14px}
+header{position:sticky;top:0;z-index:5;background:var(--acc);color:#fff;display:flex;justify-content:space-between;align-items:center;padding:10px 14px}
+header .ttl{font-weight:700;font-size:17px}
+header .uinfo{display:flex;gap:8px;align-items:center;font-size:14px}
+header .mini{background:rgba(255,255,255,.2);color:#fff}
+#banner{background:#FDECEA;color:#7A1F1B;padding:10px 14px;font-size:14px}
+section{padding:12px 12px 90px;max-width:760px;margin:0 auto}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:10px}
+.login-wrap{max-width:420px;margin:10vh auto 0;padding:0 16px}
+.login-card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:28px 22px;text-align:center}
+.login-card .logo{font-size:52px}
+.login-card h1{margin:6px 0 4px;font-size:24px}
+.login-card .sub{color:var(--sub);margin:0 0 18px}
+.login-card .note{color:var(--sub);font-size:13px;margin-top:14px}
+.addbox{display:flex;gap:8px;margin-bottom:12px}
+.addbox.col{flex-direction:column}
+.addbox .who{max-width:120px}
+#tabbar{position:fixed;left:0;right:0;bottom:0;z-index:6;background:#fff;border-top:1px solid var(--line);display:flex}
+#tabbar button{flex:1;background:none;border-radius:0;min-height:56px;font-size:15px;color:var(--sub)}
+#tabbar button.on{color:var(--acc);font-weight:700;box-shadow:inset 0 2px 0 var(--acc)}
+.chat-list{display:flex;flex-direction:column;gap:8px;padding-bottom:70px}
+.msg{max-width:85%;padding:8px 12px;border-radius:14px;background:#fff;border:1px solid var(--line)}
+.msg.me{align-self:flex-end;background:#DFF2EE;border-color:#BFE3DC}
+.msg .who{font-size:12px;color:var(--sub);margin-bottom:2px}
+.msg .time{font-size:11px;color:var(--sub);text-align:right;margin-top:3px}
+.msg .text{white-space:pre-wrap;word-break:break-word}
+.composer{position:fixed;left:0;right:0;bottom:56px;z-index:5;background:var(--bg);padding:8px 12px;display:flex;gap:8px;border-top:1px solid var(--line)}
+.composer-inner{display:flex;gap:8px;width:100%;max-width:760px;margin:0 auto}
+.proj-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.p-title{font-weight:700;font-size:17px}
+.chip{font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;color:#fff;white-space:nowrap}
+.st-0{background:#8A8578}.st-1{background:#D9932E}.st-2{background:var(--acc)}
+.bar{height:10px;background:#EFEAE0;border-radius:999px;overflow:hidden;margin:10px 0 4px}
+.fill{height:100%;background:var(--acc);border-radius:999px}
+.p-row{display:flex;align-items:center;gap:10px;margin-top:8px}
+.p-row label{font-size:13px;color:var(--sub);white-space:nowrap}
+.p-row .pct{font-weight:700;min-width:44px;text-align:right}
+.p-note-row{display:flex;gap:8px;margin-top:10px}
+.meta{font-size:12px;color:var(--sub);margin-top:8px;display:flex;justify-content:space-between;align-items:center}
+.todo-row{display:flex;align-items:center;gap:10px}
+.todo-row input[type=checkbox]{width:22px;height:22px;flex:none}
+.todo-row .t{flex:1;word-break:break-word}
+.todo-row .t.done{text-decoration:line-through;color:var(--sub)}
+.who-chip{font-size:12px;background:#EFEAE0;border-radius:999px;padding:2px 9px;color:var(--sub);white-space:nowrap}
+.memo-body{white-space:pre-wrap;word-break:break-word;margin-top:4px}
+.empty{color:var(--sub);text-align:center;padding:24px 0}
+</style>
+</head>
+<body>
+
+<div id="login">
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="logo">🏢</div>
+      <h1>会社ワーク</h1>
+      <p class="sub">2人だけの連絡ツール<br>連絡・進捗・TODO・メモ</p>
+      <button id="btn-login" class="primary" style="width:100%">Googleでログイン</button>
+      <p id="lmsg" class="err"></p>
+      <p class="note">許可されたGoogleアカウントだけが入れます。<br>他のアカウントでは中身は見られません。</p>
+    </div>
+  </div>
+</div>
+
+<div id="app" style="display:none">
+  <header>
+    <div class="ttl">🏢 会社ワーク ｜ <span id="ttl-tab">連絡</span></div>
+    <div class="uinfo"><span id="uname"></span><button id="btn-logout" class="mini">ログアウト</button></div>
+  </header>
+  <div id="banner" style="display:none"></div>
+
+  <section id="s-chat">
+    <div id="chat-list" class="chat-list"></div>
+    <div class="composer"><div class="composer-inner">
+      <input id="i-chat" type="text" placeholder="メッセージを書く">
+      <button id="btn-chat" class="primary">送信</button>
+    </div></div>
+  </section>
+
+  <section id="s-prog" style="display:none">
+    <div class="addbox">
+      <input id="i-proj" type="text" placeholder="新しい案件・プロジェクト名">
+      <button id="btn-proj" class="primary">追加</button>
+    </div>
+    <div id="prog-list"></div>
+  </section>
+
+  <section id="s-todo" style="display:none">
+    <div class="addbox">
+      <input id="i-todo" type="text" placeholder="やること">
+      <input id="i-todo-who" type="text" class="who" placeholder="担当（任意）">
+      <button id="btn-todo" class="primary">追加</button>
+    </div>
+    <div id="todo-list"></div>
+  </section>
+
+  <section id="s-memo" style="display:none">
+    <div class="addbox col">
+      <input id="i-memo-t" type="text" placeholder="メモの題名（任意）">
+      <textarea id="i-memo-b" rows="3" placeholder="メモの内容"></textarea>
+      <button id="btn-memo" class="primary">メモを追加</button>
+    </div>
+    <div id="memo-list"></div>
+  </section>
+
+  <nav id="tabbar">
+    <button data-tab="chat" class="on">💬 連絡</button>
+    <button data-tab="prog">📊 進捗</button>
+    <button data-tab="todo">✅ TODO</button>
+    <button data-tab="memo">📝 メモ</button>
+  </nav>
+</div>
+
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import {getAuth,onAuthStateChanged,signInWithPopup,GoogleAuthProvider,signOut} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+import {initializeFirestore,getFirestore,persistentLocalCache,collection,doc,addDoc,updateDoc,deleteDoc,onSnapshot,query,orderBy} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+/* ================================================================
+   設定：Firebaseプロジェクトを作ったあと、ここを書き換える
+   （手順は firestore.rules と一緒に渡すメモを参照）
+   ================================================================ */
+var firebaseConfig = {
+  apiKey: "AIzaSyD0JUfBGSMSehiM26c8ErgRiWrerQZxvDQ",
+  authDomain: "konishike-work.firebaseapp.com",
+  projectId: "konishike-work",
+  storageBucket: "konishike-work.firebasestorage.app",
+  messagingSenderId: "414758375067",
+  appId: "1:414758375067:web:1348a8a3da8df39c0f803e"
+};
+/* 入室を許可するGoogleアカウント（2人分）。ルール側にも同じ2つを書く */
+var ALLOW = ["komomo0680@gmail.com", "love0069.wk@gmail.com"];
+/* ================================================================ */
+
+var $ = function(i){ return document.getElementById(i); };
+function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+function p2(n){ return String(n).padStart(2, "0"); }
+function fmt(ts){ if(!ts) return ""; var d = new Date(ts); return (d.getMonth()+1) + "/" + d.getDate() + " " + p2(d.getHours()) + ":" + p2(d.getMinutes()); }
+function banner(m){ var b = $("banner"); b.style.display = "block"; b.textContent = m; }
+function myName(u){ return ((u && u.displayName) || "名前なし").split(/\s+/)[0].slice(0, 10); }
+
+var app = null, auth = null, db = null, me = null, unsubs = [];
+var READY = firebaseConfig.apiKey !== "YOUR_API_KEY";
+if (READY) {
+  app = initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  try { db = initializeFirestore(app, {localCache: persistentLocalCache()}); } catch(e) { db = getFirestore(app); }
+} else {
+  $("lmsg").textContent = "（準備中：Firebaseの設定がまだ入っていません）";
+}
+
+function C(k){ return collection(db, "org", "main", k); }
+function D(k, id){ return doc(db, "org", "main", k, id); }
+
+function showTab(n){
+  ["chat","prog","todo","memo"].forEach(function(k){
+    $("s-" + k).style.display = (k === n) ? "block" : "none";
+  });
+  document.querySelectorAll("#tabbar button").forEach(function(b){
+    b.className = (b.dataset.tab === n) ? "on" : "";
+  });
+  $("ttl-tab").textContent = {chat:"連絡", prog:"進捗", todo:"TODO", memo:"メモ"}[n];
+  if (n === "chat") setTimeout(scrollChat, 60);
+  try { localStorage.setItem("kaisha-tab", n); } catch(e) {}
+}
+function scrollChat(){ window.scrollTo(0, document.body.scrollHeight); }
+
+$("btn-login").onclick = function(){
+  if (!READY) { $("lmsg").textContent = "（準備中：Firebaseの設定がまだ入っていません）"; return; }
+  $("lmsg").textContent = "";
+  signInWithPopup(auth, new GoogleAuthProvider()).catch(function(e){
+    $("lmsg").textContent = "ログインできませんでした（" + (e.code || "") + "）";
+  });
+};
+$("btn-logout").onclick = function(){ if (auth) signOut(auth); };
+document.querySelectorAll("#tabbar button").forEach(function(b){
+  b.onclick = function(){ showTab(b.dataset.tab); };
+});
+
+function stopListen(){ unsubs.forEach(function(f){ try { f(); } catch(e) {} }); unsubs = []; }
+
+if (READY) onAuthStateChanged(auth, function(u){
+  stopListen();
+  if (!u) { me = null; $("app").style.display = "none"; $("login").style.display = "block"; return; }
+  var email = (u.email || "").toLowerCase();
+  if (ALLOW.indexOf(email) < 0) {
+    signOut(auth).then(function(){ $("lmsg").textContent = "このGoogleアカウントは許可されていません。"; });
+    return;
+  }
+  me = u;
+  $("uname").textContent = myName(u);
+  $("login").style.display = "none";
+  $("app").style.display = "block";
+  startListen();
+  var t = "chat"; try { t = localStorage.getItem("kaisha-tab") || "chat"; } catch(e) {}
+  showTab(["chat","prog","todo","memo"].indexOf(t) >= 0 ? t : "chat");
+});
+
+/* ---------------- 連絡（チャット） ---------------- */
+var chatDocs = [];
+function renderChat(){
+  var el = $("chat-list");
+  if (!chatDocs.length) { el.innerHTML = '<p class="empty">まだメッセージがありません。<br>最初の連絡を書いてみましょう。</p>'; return; }
+  el.innerHTML = chatDocs.map(function(d){
+    var mine = me && d.uid === me.uid;
+    return '<div class="msg' + (mine ? " me" : "") + '">' +
+      (mine ? "" : '<div class="who">' + esc(d.who) + "</div>") +
+      '<div class="text">' + esc(d.text) + "</div>" +
+      '<div class="time">' + fmt(d.ts) + "</div></div>";
+  }).join("");
+  scrollChat();
+}
+async function sendChat(){
+  var v = $("i-chat").value.trim(); if (!v) return;
+  $("i-chat").value = "";
+  try { await addDoc(C("chat"), {uid: me.uid, who: myName(me), text: v, ts: Date.now()}); }
+  catch(e) { banner("送信に失敗しました。通信状態を確認してください。"); }
+}
+$("btn-chat").onclick = sendChat;
+$("i-chat").addEventListener("keydown", function(e){ if (e.key === "Enter") sendChat(); });
+
+/* ---------------- 進捗 ---------------- */
+var STS = ["未着手", "進行中", "完了"];
+var projDocs = [];
+function renderProg(){
+  var el = $("prog-list");
+  if (!projDocs.length) { el.innerHTML = '<p class="empty">まだ案件がありません。<br>上の欄から最初の案件を追加しましょう。</p>'; return; }
+  el.innerHTML = projDocs.map(function(d){
+    var st = STS.indexOf(d.status); if (st < 0) st = 0;
+    var pct = Math.max(0, Math.min(100, d.pct || 0));
+    var opts = STS.map(function(s, i){ return '<option value="' + s + '"' + (i === st ? " selected" : "") + ">" + s + "</option>"; }).join("");
+    return '<div class="card" data-id="' + d.id + '">' +
+      '<div class="proj-head"><span class="p-title">' + esc(d.title) + '</span><span class="chip st-' + st + '">' + STS[st] + "</span></div>" +
+      '<div class="bar"><div class="fill" style="width:' + pct + '%"></div></div>' +
+      '<div class="p-row"><label>進み具合</label><input type="range" min="0" max="100" step="10" value="' + pct + '" data-act="pct"><span class="pct">' + pct + "%</span></div>" +
+      '<div class="p-row"><label>状態</label><select data-act="status">' + opts + "</select></div>" +
+      '<div class="p-note-row"><input type="text" data-note value="' + esc(d.note || "") + '" placeholder="最新のひとこと（例：素材待ち）"><button class="mini" data-act="savenote">保存</button></div>' +
+      '<div class="meta"><span>更新：' + esc(d.uwho || "") + " ・ " + fmt(d.uts || d.ts) + '</span><button class="mini del" data-act="del">削除</button></div>' +
+      "</div>";
+  }).join("");
+}
+$("prog-list").addEventListener("change", async function(e){
+  var card = e.target.closest("[data-id]"); if (!card) return;
+  var id = card.dataset.id, act = e.target.dataset.act;
+  try {
+    if (act === "pct") await updateDoc(D("projects", id), {pct: +e.target.value, uwho: myName(me), uts: Date.now()});
+    if (act === "status") await updateDoc(D("projects", id), {status: e.target.value, uwho: myName(me), uts: Date.now()});
+  } catch(err) { banner("進捗の保存に失敗しました。"); }
+});
+$("prog-list").addEventListener("click", async function(e){
+  var card = e.target.closest("[data-id]"); if (!card) return;
+  var id = card.dataset.id, act = e.target.dataset.act;
+  try {
+    if (act === "savenote") {
+      var v = card.querySelector("[data-note]").value.trim();
+      await updateDoc(D("projects", id), {note: v, uwho: myName(me), uts: Date.now()});
+    }
+    if (act === "del") {
+      if (confirm("この案件を削除しますか？")) await deleteDoc(D("projects", id));
+    }
+  } catch(err) { banner("操作に失敗しました。"); }
+});
+$("btn-proj").onclick = async function(){
+  var v = $("i-proj").value.trim(); if (!v) return;
+  $("i-proj").value = "";
+  try { await addDoc(C("projects"), {title: v, status: "未着手", pct: 0, note: "", uid: me.uid, who: myName(me), ts: Date.now(), uwho: myName(me), uts: Date.now()}); }
+  catch(e) { banner("案件の追加に失敗しました。"); }
+};
+
+/* ---------------- TODO ---------------- */
+var todoDocs = [];
+function renderTodo(){
+  var el = $("todo-list");
+  if (!todoDocs.length) { el.innerHTML = '<p class="empty">TODOは空です。</p>'; return; }
+  el.innerHTML = todoDocs.map(function(d){
+    return '<div class="card todo-row" data-id="' + d.id + '">' +
+      '<input type="checkbox" data-act="toggle"' + (d.done ? " checked" : "") + ">" +
+      '<span class="t' + (d.done ? " done" : "") + '">' + esc(d.text) + "</span>" +
+      (d.who ? '<span class="who-chip">' + esc(d.who) + "</span>" : "") +
+      '<button class="mini del" data-act="del">削除</button></div>';
+  }).join("");
+}
+$("btn-todo").onclick = async function(){
+  var v = $("i-todo").value.trim(); if (!v) return;
+  var who = $("i-todo-who").value.trim();
+  $("i-todo").value = ""; $("i-todo-who").value = "";
+  try { await addDoc(C("todos"), {text: v, who: who, done: false, uid: me.uid, ts: Date.now()}); }
+  catch(e) { banner("TODOの追加に失敗しました。"); }
+};
+$("todo-list").addEventListener("click", async function(e){
+  var row = e.target.closest("[data-id]"); if (!row) return;
+  var id = row.dataset.id, act = e.target.dataset.act;
+  try {
+    if (act === "toggle") {
+      var d = todoDocs.filter(function(x){ return x.id === id; })[0];
+      await updateDoc(D("todos", id), {done: !(d && d.done)});
+    }
+    if (act === "del") await deleteDoc(D("todos", id));
+  } catch(err) { banner("操作に失敗しました。"); }
+});
+
+/* ---------------- メモ ---------------- */
+var memoDocs = [];
+function renderMemo(){
+  var el = $("memo-list");
+  if (!memoDocs.length) { el.innerHTML = '<p class="empty">まだメモがありません。</p>'; return; }
+  el.innerHTML = memoDocs.map(function(d){
+    return '<div class="card" data-id="' + d.id + '">' +
+      (d.title ? '<div class="p-title">' + esc(d.title) + "</div>" : "") +
+      '<div class="memo-body">' + esc(d.body) + "</div>" +
+      '<div class="meta"><span>' + esc(d.who || "") + " ・ " + fmt(d.ts) + '</span><button class="mini del" data-act="del">削除</button></div></div>';
+  }).join("");
+}
+$("btn-memo").onclick = async function(){
+  var t = $("i-memo-t").value.trim(), b = $("i-memo-b").value.trim();
+  if (!b) return;
+  $("i-memo-t").value = ""; $("i-memo-b").value = "";
+  try { await addDoc(C("memos"), {title: t, body: b, uid: me.uid, who: myName(me), ts: Date.now()}); }
+  catch(e) { banner("メモの追加に失敗しました。"); }
+};
+$("memo-list").addEventListener("click", async function(e){
+  var row = e.target.closest("[data-id]"); if (!row) return;
+  if (e.target.dataset.act === "del") {
+    try { await deleteDoc(D("memos", row.dataset.id)); } catch(err) { banner("削除に失敗しました。"); }
+  }
+});
+
+/* ---------------- 同期 ---------------- */
+function startListen(){
+  function onErr(){ banner("読み込みに失敗しました。通信状態を確認してください。"); }
+  unsubs.push(onSnapshot(query(C("chat"), orderBy("ts")), function(s){
+    chatDocs = s.docs.map(function(d){ return Object.assign({id: d.id}, d.data()); }); renderChat();
+  }, onErr));
+  unsubs.push(onSnapshot(query(C("projects"), orderBy("ts")), function(s){
+    projDocs = s.docs.map(function(d){ return Object.assign({id: d.id}, d.data()); }); renderProg();
+  }, onErr));
+  unsubs.push(onSnapshot(query(C("todos"), orderBy("ts")), function(s){
+    todoDocs = s.docs.map(function(d){ return Object.assign({id: d.id}, d.data()); }); renderTodo();
+  }, onErr));
+  unsubs.push(onSnapshot(query(C("memos"), orderBy("ts", "desc")), function(s){
+    memoDocs = s.docs.map(function(d){ return Object.assign({id: d.id}, d.data()); }); renderMemo();
+  }, onErr));
+}
+</script>
+</body>
+</html>
