@@ -65,6 +65,9 @@ section{padding:12px 12px 90px;max-width:760px;margin:0 auto}
 .app-url{font-size:13px;color:var(--sub);word-break:break-all;margin-top:4px}
 .app-open{display:inline-block;background:var(--acc);color:#fff;padding:8px 16px;border-radius:10px;text-decoration:none;font-weight:700;font-size:15px}
 .app-note{white-space:pre-wrap;word-break:break-word;margin-top:6px}
+.tab-dot{display:inline-block;color:#E5484D;font-size:13px;margin-left:3px}
+.chip.new{background:#E5484D}
+.apps-hint{font-size:13px;color:var(--sub);margin:-4px 0 12px}
 .empty{color:var(--sub);text-align:center;padding:24px 0}
 </style>
 </head>
@@ -131,6 +134,7 @@ section{padding:12px 12px 90px;max-width:760px;margin:0 auto}
       <input id="i-app-n" type="text" placeholder="ひとことメモ（任意）">
       <button id="btn-app" class="primary">アプリを置く</button>
     </div>
+    <p class="apps-hint">「開く」でそのまま使いたいアプリは、Web版のURLを置いてください。APKのURLはタップするとダウンロードになります。／ 相手が新しいアプリを置くと、下の「📱 アプリ」のアイコンに ● が出て、そのカードにも「新着」が付きます。アプリタブを開くと ● は消えます。</p>
     <div id="apps-list"></div>
   </section>
 
@@ -139,7 +143,7 @@ section{padding:12px 12px 90px;max-width:760px;margin:0 auto}
     <button data-tab="prog">📊 進捗</button>
     <button data-tab="todo">✅ TODO</button>
     <button data-tab="memo">📝 メモ</button>
-    <button data-tab="apps">📱 アプリ</button>
+    <button data-tab="apps">📱 アプリ<span id="apps-dot" class="tab-dot" style="display:none">●</span></button>
   </nav>
 </div>
 
@@ -193,6 +197,12 @@ function showTab(n){
   });
   $("ttl-tab").textContent = {chat:"連絡", prog:"進捗", todo:"TODO", memo:"メモ", apps:"アプリ"}[n];
   if (n === "chat") setTimeout(scrollChat, 60);
+  if (n === "apps" && typeof appDocs !== "undefined" && appDocs.length) {
+    appsSeenTs = appsMaxTs();
+    try { localStorage.setItem("kaisha-apps-seen-ts", String(appsSeenTs)); } catch(e) {}
+    appsUnseenIds = {};
+    updateAppsDot();
+  }
   try { localStorage.setItem("kaisha-tab", n); } catch(e) {}
 }
 function scrollChat(){ window.scrollTo(0, document.body.scrollHeight); }
@@ -359,12 +369,20 @@ $("memo-list").addEventListener("click", async function(e){
 
 /* ---------------- アプリ置き場 ---------------- */
 var appDocs = [];
+var appsSeenTs = null;
+try { var _ast = localStorage.getItem("kaisha-apps-seen-ts"); if (_ast !== null) appsSeenTs = +_ast; } catch(e) {}
+var appsUnseenIds = {};
+function appsMaxTs(){ return appDocs.reduce(function(m, d){ return Math.max(m, d.ts || 0); }, 0); }
+function updateAppsDot(){
+  var dot = $("apps-dot"); if (!dot) return;
+  dot.style.display = Object.keys(appsUnseenIds).length ? "inline-block" : "none";
+}
 function renderApps(){
   var el = $("apps-list");
   if (!appDocs.length) { el.innerHTML = '<p class="empty">まだアプリが置かれていません。<br>作ったアプリの名前とURLを置いておけます。</p>'; return; }
   el.innerHTML = appDocs.map(function(d){
     return '<div class="card" data-id="' + d.id + '">' +
-      '<div class="proj-head"><span class="p-title">' + esc(d.title) + '</span>' +
+      '<div class="proj-head"><span class="p-title">' + esc(d.title) + (appsUnseenIds[d.id] ? ' <span class="chip new">新着</span>' : "") + '</span>' +
       (d.url ? '<a class="app-open" href="' + esc(d.url) + '" target="_blank" rel="noopener">開く</a>' : "") + "</div>" +
       (d.note ? '<div class="app-note">' + esc(d.note) + "</div>" : "") +
       (d.url ? '<div class="app-url">' + esc(d.url) + "</div>" : "") +
@@ -404,7 +422,15 @@ function startListen(){
     memoDocs = s.docs.map(function(d){ return Object.assign({id: d.id}, d.data()); }); renderMemo();
   }, onErr));
   unsubs.push(onSnapshot(query(C("apps"), orderBy("ts", "desc")), function(s){
-    appDocs = s.docs.map(function(d){ return Object.assign({id: d.id}, d.data()); }); renderApps();
+    appDocs = s.docs.map(function(d){ return Object.assign({id: d.id}, d.data()); });
+    if (appsSeenTs === null) {
+      /* 初回だけ：直近7日に相手が置いたものを新着として拾う */
+      appsSeenTs = Date.now() - 7 * 24 * 60 * 60 * 1000;
+      try { localStorage.setItem("kaisha-apps-seen-ts", String(appsSeenTs)); } catch(e) {}
+    }
+    appsUnseenIds = {};
+    appDocs.forEach(function(d){ if ((d.ts || 0) > appsSeenTs && (!me || d.uid !== me.uid)) appsUnseenIds[d.id] = 1; });
+    renderApps(); updateAppsDot();
   }, onErr));
 }
 </script>
