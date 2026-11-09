@@ -62,6 +62,9 @@ section{padding:12px 12px 90px;max-width:760px;margin:0 auto}
 .todo-row .t.done{text-decoration:line-through;color:var(--sub)}
 .who-chip{font-size:12px;background:#EFEAE0;border-radius:999px;padding:2px 9px;color:var(--sub);white-space:nowrap}
 .memo-body{white-space:pre-wrap;word-break:break-word;margin-top:4px}
+.app-url{font-size:13px;color:var(--sub);word-break:break-all;margin-top:4px}
+.app-open{display:inline-block;background:var(--acc);color:#fff;padding:8px 16px;border-radius:10px;text-decoration:none;font-weight:700;font-size:15px}
+.app-note{white-space:pre-wrap;word-break:break-word;margin-top:6px}
 .empty{color:var(--sub);text-align:center;padding:24px 0}
 </style>
 </head>
@@ -72,7 +75,7 @@ section{padding:12px 12px 90px;max-width:760px;margin:0 auto}
     <div class="login-card">
       <div class="logo">🏢</div>
       <h1>小西家co.</h1>
-      <p class="sub">連絡・進捗・TODO・メモ</p>
+      <p class="sub">連絡・進捗・TODO・メモ・アプリ</p>
       <button id="btn-login" class="primary" style="width:100%">Googleでログイン</button>
       <p id="lmsg" class="err"></p>
       <p class="note">許可されたGoogleアカウントだけが入れます。<br>他のアカウントでは中身は見られません。</p>
@@ -121,11 +124,22 @@ section{padding:12px 12px 90px;max-width:760px;margin:0 auto}
     <div id="memo-list"></div>
   </section>
 
+  <section id="s-apps" style="display:none">
+    <div class="addbox col">
+      <input id="i-app-t" type="text" placeholder="アプリの名前">
+      <input id="i-app-u" type="url" inputmode="url" placeholder="アプリのURL（https://…）">
+      <input id="i-app-n" type="text" placeholder="ひとことメモ（任意）">
+      <button id="btn-app" class="primary">アプリを置く</button>
+    </div>
+    <div id="apps-list"></div>
+  </section>
+
   <nav id="tabbar">
     <button data-tab="chat" class="on">💬 連絡</button>
     <button data-tab="prog">📊 進捗</button>
     <button data-tab="todo">✅ TODO</button>
     <button data-tab="memo">📝 メモ</button>
+    <button data-tab="apps">📱 アプリ</button>
   </nav>
 </div>
 
@@ -171,13 +185,13 @@ function C(k){ return collection(db, "org", "main", k); }
 function D(k, id){ return doc(db, "org", "main", k, id); }
 
 function showTab(n){
-  ["chat","prog","todo","memo"].forEach(function(k){
+  ["chat","prog","todo","memo","apps"].forEach(function(k){
     $("s-" + k).style.display = (k === n) ? "block" : "none";
   });
   document.querySelectorAll("#tabbar button").forEach(function(b){
     b.className = (b.dataset.tab === n) ? "on" : "";
   });
-  $("ttl-tab").textContent = {chat:"連絡", prog:"進捗", todo:"TODO", memo:"メモ"}[n];
+  $("ttl-tab").textContent = {chat:"連絡", prog:"進捗", todo:"TODO", memo:"メモ", apps:"アプリ"}[n];
   if (n === "chat") setTimeout(scrollChat, 60);
   try { localStorage.setItem("kaisha-tab", n); } catch(e) {}
 }
@@ -211,7 +225,7 @@ if (READY) onAuthStateChanged(auth, function(u){
   $("app").style.display = "block";
   startListen();
   var t = "chat"; try { t = localStorage.getItem("kaisha-tab") || "chat"; } catch(e) {}
-  showTab(["chat","prog","todo","memo"].indexOf(t) >= 0 ? t : "chat");
+  showTab(["chat","prog","todo","memo","apps"].indexOf(t) >= 0 ? t : "chat");
 });
 
 /* ---------------- 連絡（チャット） ---------------- */
@@ -343,6 +357,37 @@ $("memo-list").addEventListener("click", async function(e){
   }
 });
 
+/* ---------------- アプリ置き場 ---------------- */
+var appDocs = [];
+function renderApps(){
+  var el = $("apps-list");
+  if (!appDocs.length) { el.innerHTML = '<p class="empty">まだアプリが置かれていません。<br>作ったアプリの名前とURLを置いておけます。</p>'; return; }
+  el.innerHTML = appDocs.map(function(d){
+    return '<div class="card" data-id="' + d.id + '">' +
+      '<div class="proj-head"><span class="p-title">' + esc(d.title) + '</span>' +
+      (d.url ? '<a class="app-open" href="' + esc(d.url) + '" target="_blank" rel="noopener">開く</a>' : "") + "</div>" +
+      (d.note ? '<div class="app-note">' + esc(d.note) + "</div>" : "") +
+      (d.url ? '<div class="app-url">' + esc(d.url) + "</div>" : "") +
+      '<div class="meta"><span>' + esc(d.who || "") + " ・ " + fmt(d.ts) + '</span><button class="mini del" data-act="del">削除</button></div></div>';
+  }).join("");
+}
+$("btn-app").onclick = async function(){
+  var t = $("i-app-t").value.trim(), u = $("i-app-u").value.trim(), n = $("i-app-n").value.trim();
+  if (!t || !u) { banner("アプリの名前とURLを入れてください。"); return; }
+  if (!/^https?:\/\//i.test(u)) u = "https://" + u;
+  $("i-app-t").value = ""; $("i-app-u").value = ""; $("i-app-n").value = "";
+  try { await addDoc(C("apps"), {title: t, url: u, note: n, uid: me.uid, who: myName(me), ts: Date.now()}); }
+  catch(e) { banner("アプリの追加に失敗しました。"); }
+};
+$("apps-list").addEventListener("click", async function(e){
+  var row = e.target.closest("[data-id]"); if (!row) return;
+  if (e.target.dataset.act === "del") {
+    if (confirm("このアプリを置き場から削除しますか？（アプリ本体は消えません）")) {
+      try { await deleteDoc(D("apps", row.dataset.id)); } catch(err) { banner("削除に失敗しました。"); }
+    }
+  }
+});
+
 /* ---------------- 同期 ---------------- */
 function startListen(){
   function onErr(){ banner("読み込みに失敗しました。通信状態を確認してください。"); }
@@ -357,6 +402,9 @@ function startListen(){
   }, onErr));
   unsubs.push(onSnapshot(query(C("memos"), orderBy("ts", "desc")), function(s){
     memoDocs = s.docs.map(function(d){ return Object.assign({id: d.id}, d.data()); }); renderMemo();
+  }, onErr));
+  unsubs.push(onSnapshot(query(C("apps"), orderBy("ts", "desc")), function(s){
+    appDocs = s.docs.map(function(d){ return Object.assign({id: d.id}, d.data()); }); renderApps();
   }, onErr));
 }
 </script>
